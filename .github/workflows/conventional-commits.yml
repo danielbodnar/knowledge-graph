@@ -3,7 +3,8 @@ name: conventional-commits
 
 on:
   pull_request:
-    branches: main
+    branches:
+      - main
     types:
       - edited
       - opened
@@ -12,4 +13,6 @@ on:
 
 jobs:
   conventional_commit_title:
+    permissions:
+      pull-requests: read
     uses: learning-commons-org/shared-github-actions/.github/workflows/conventional-commits.yml@v1.2.0
