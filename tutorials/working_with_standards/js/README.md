@@ -26,7 +26,7 @@ Follow the step-by-step tutorial [here](https://docs.learningcommons.org/knowled
 
 1. **Clone and Install**:
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:learning-commons-org/knowledge-graph.git
    cd tutorials/working_with_standards/js
    npm install
    ```
