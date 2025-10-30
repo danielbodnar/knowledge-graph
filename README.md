@@ -1,9 +1,9 @@
 <img style="width:100%" alt="knowledge_graph_banner" src="https://raw.githubusercontent.com/learning-commons-org/.github/refs/heads/main/assets/kg_hero.png" />
 
 <p align="center">
-  <a href="https://docs.learningcommons.org/knowledge-graph/getting-started/download-the-data/" target="_blank">Getting set up</a>
+  <a href="https://docs.learningcommons.org/knowledge-graph/v1-1-0/getting-started/download-the-data/" target="_blank">Getting set up</a>
   •
-  <a href="https://docs.learningcommons.org/knowledge-graph/getting-started/tutorials/tutorial-overview" target="_blank">Tutorials</a>
+  <a href="https://docs.learningcommons.org/knowledge-graph/v1-1-0/getting-started/tutorials/tutorial-overview" target="_blank">Tutorials</a>
 </p>
 
 
@@ -51,36 +51,49 @@ There are two options to download the files: direct s3 links, or using curl comm
 
 ### Direct S3 links  
 
+Click links to download files directly. Files will download to your browser's default location (typically `~/Downloads`).
+
 **CSV files:**  
-- [StandardsFramework.csv](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/csv/StandardsFramework.csv?ref=github)  
-- [StandardsFrameworkItem.csv](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/csv/StandardsFrameworkItem.csv?ref=github)  
-- [LearningComponent.csv](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/csv/LearningComponent.csv?ref=github)  
-- [Relationships.csv](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/csv/Relationships.csv?ref=github)  
+- [StandardsFramework.csv](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/csv/StandardsFramework.csv?ref=github)  
+- [StandardsFrameworkItem.csv](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/csv/StandardsFrameworkItem.csv?ref=github)  
+- [LearningComponent.csv](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/csv/LearningComponent.csv?ref=github)  
+- [Relationships.csv](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/csv/Relationships.csv?ref=github)
+
+**For SQL database imports:** Move the downloaded CSV files to `/tmp/kg-data/` to use the import scripts without modification:
+
+```bash
+mkdir -p /tmp/kg-data
+mv ~/Downloads/StandardsFramework.csv ~/Downloads/StandardsFrameworkItem.csv ~/Downloads/LearningComponent.csv ~/Downloads/Relationships.csv /tmp/kg-data/
+```  
 
 **JSON files:**  
-- [StandardsFramework.json](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/json/StandardsFramework.json?ref=github)  
-- [StandardsFrameworkItem.json](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/json/StandardsFrameworkItem.json?ref=github)  
-- [LearningComponent.json](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/json/LearningComponent.json?ref=github)  
-- [Relationships.json](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/json/Relationships.json?ref=github)  
+- [StandardsFramework.json](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/json/StandardsFramework.json?ref=github)  
+- [StandardsFrameworkItem.json](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/json/StandardsFrameworkItem.json?ref=github)  
+- [LearningComponent.json](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/json/LearningComponent.json?ref=github)  
+- [Relationships.json](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/json/Relationships.json?ref=github)  
 
 ### Using curl commands  
 
-
 If you don't have `curl` installed, see [installation instructions](https://github.com/curl/curl).  
 
+**Recommended**: Download files to `/tmp/kg-data/` for compatibility with the SQL import scripts:
+
 ```bash
-# Download CSV files
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/csv/StandardsFramework.csv?ref=gh_curl" -o StandardsFramework.csv
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/csv/StandardsFrameworkItem.csv?ref=gh_curl" -o StandardsFrameworkItem.csv
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/csv/LearningComponent.csv?ref=gh_curl" -o LearningComponent.csv
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/csv/Relationships.csv?ref=gh_curl" -o Relationships.csv
+# Create directory and download CSV files
+mkdir -p /tmp/kg-data
+cd /tmp/kg-data
+
+curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/csv/StandardsFramework.csv?ref=gh_curl" -o StandardsFramework.csv
+curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/csv/StandardsFrameworkItem.csv?ref=gh_curl" -o StandardsFrameworkItem.csv
+curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/csv/LearningComponent.csv?ref=gh_curl" -o LearningComponent.csv
+curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/csv/Relationships.csv?ref=gh_curl" -o Relationships.csv
 ```
 ```bash
 # Download JSON files
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/json/StandardsFramework.json?ref=gh_curl" -o StandardsFramework.json
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/json/StandardsFrameworkItem.json?ref=gh_curl" -o StandardsFrameworkItem.json
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/json/LearningComponent.json?ref=gh_curl" -o LearningComponent.json
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.0.0/json/Relationships.json?ref=gh_curl" -o Relationships.json
+curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/json/StandardsFramework.json?ref=gh_curl" -o StandardsFramework.json
+curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/json/StandardsFrameworkItem.json?ref=gh_curl" -o StandardsFrameworkItem.json
+curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/json/LearningComponent.json?ref=gh_curl" -o LearningComponent.json
+curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.1.0/json/Relationships.json?ref=gh_curl" -o Relationships.json
 ```
 
 ### **Next steps**

@@ -8,7 +8,7 @@ Demonstrates how to generate prerequisite-based practice questions using Knowled
 
 **Features**: Common Core Math analysis, prerequisite relationship traversal, learning component mapping
 
-Follow the step-by-step tutorial [here](https://docs.learningcommons.org/knowledge-graph/getting-started/tutorials/generating-prerequisite-practice-questions)
+Follow the step-by-step tutorial [here](https://docs.learningcommons.org/knowledge-graph/v1-1-0/getting-started/tutorials/generating-prerequisite-practice-questions)
 
 ## Prerequisites
 
@@ -29,7 +29,7 @@ Follow the step-by-step tutorial [here](https://docs.learningcommons.org/knowled
 
 1. **Clone and Install**:
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:learning-commons-org/knowledge-graph.git
    cd tutorials/generate_prereq_practice/js
    npm install
    ```

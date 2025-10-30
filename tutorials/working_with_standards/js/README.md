@@ -4,7 +4,7 @@ Demonstrates how to work with state educational standards data covering:
 - **AI Embeddings**: Generating vector embeddings for semantic search
 - **Vector Search**: Performing similarity-based searches on educational standards
 
-Follow the step-by-step tutorial [here](https://docs.learningcommons.org/knowledge-graph/getting-started/tutorials/working-with-state-standards)
+Follow the step-by-step tutorial [here](https://docs.learningcommons.org/knowledge-graph/v1-1-0/getting-started/tutorials/working-with-state-standards)
 
 ## Prerequisites
 
@@ -26,7 +26,7 @@ Follow the step-by-step tutorial [here](https://docs.learningcommons.org/knowled
 
 1. **Clone and Install**:
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:learning-commons-org/knowledge-graph.git
    cd tutorials/working_with_standards/js
    npm install
    ```
