@@ -1,9 +1,9 @@
 <img style="width:100%" alt="knowledge_graph_banner" src="https://raw.githubusercontent.com/learning-commons-org/.github/refs/heads/main/assets/kg_hero.png" />
 
 <p align="center">
-  <a href="https://docs.learningcommons.org/knowledge-graph/getting-started/download-the-data/" target="_blank">Getting set up</a>
+  <a href="https://docs.learningcommons.org/knowledge-graph/v1-1-0/getting-started/download-the-data/" target="_blank">Getting set up</a>
   •
-  <a href="https://docs.learningcommons.org/knowledge-graph/getting-started/tutorials/tutorial-overview" target="_blank">Tutorials</a>
+  <a href="https://docs.learningcommons.org/knowledge-graph/v1-1-0/getting-started/tutorials/tutorial-overview" target="_blank">Tutorials</a>
 </p>
 
 
