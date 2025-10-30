@@ -29,7 +29,8 @@ Or execute the SQL file content directly in your MySQL client. See `create_table
 
 After creating the tables, load the data:
 
-1. **⚠️ IMPORTANT: Update the file paths in `load_data.sql` to point to your downloaded CSV files**
+1. If you downloaded files to `/tmp/kg-data/` using the commands in the main README, the script will work without modification. Otherwise, update the file paths in `load_data.sql` to point to your downloaded CSV files.
+
 2. Enable local file loading on the server (if not already enabled):
 
 ```sql
