@@ -2,7 +2,7 @@
 
 Demonstrates how to compare educational standards across different frameworks (Common Core vs Texas)
 
-Follow the step-by-step tutorial [here](https://docs.learningcommons.org/knowledge-graph/getting-started/tutorials/comparing-standards-across-states)
+Follow the step-by-step tutorial [here](https://docs.learningcommons.org/knowledge-graph/v1-1-0/getting-started/tutorials/comparing-standards-across-states)
 
 ## Prerequisites
 
