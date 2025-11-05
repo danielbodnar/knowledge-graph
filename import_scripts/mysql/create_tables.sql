@@ -67,5 +67,9 @@ CREATE TABLE IF NOT EXISTS relationships (
     `author` TEXT,
     `provider` TEXT,
     `license` TEXT,
-    `attributionStatement` TEXT
+    `attributionStatement` TEXT,
+    `jaccard` DOUBLE,
+    `ccssLCCount` INT,
+    `sharedLCCount` INT,
+    `stateLCCount` INT
 );
