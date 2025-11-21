@@ -30,10 +30,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Domain Constants
-# Pick a state standard to find its best CCSSM match
-# Note: We need to specify both the code AND jurisdiction since multiple states may use the same code
-TARGET_STATE_STANDARD_CODE = '111.26.b.4.D'  # Texas 6th grade math standard on rates
-TARGET_STATE_JURISDICTION = 'Texas'
+# Pick a CCSSM standard to find its best state standard matches
+TARGET_CCSSM_STANDARD_CODE = '6.NS.C.6.c'  # Common Core 6th grade math standard on positioning integers on number lines
+TARGET_CCSSM_JURISDICTION = 'Multi-State'
 
 # Environment Setup
 data_dir = os.getenv('KG_DATA_PATH')
@@ -123,22 +122,22 @@ def load_crosswalk_data():
 
 """
 ================================
-STEP 2: FIND THE BEST-MATCHING CCSSM STANDARD
+STEP 2: FIND THE BEST-MATCHING STATE STANDARDS
 ================================
 """
 
-def find_best_ccssm_match(state_standard_code, jurisdiction, data):
+def find_best_state_matches(ccssm_standard_code, jurisdiction, data):
     """
-    Find the best CCSSM match for a state standard
+    Find the best state standard matches for a CCSSM standard
 
-    Purpose: To find the best CCSS match for a state standard, filter rows by the
-    state standard ID and sort by the Jaccard score. This identifies the CCSSM
-    standard that contains the most similar skills and concept targets for student
+    Purpose: To find the best state standard matches for a CCSSM standard, filter rows by the
+    CCSSM standard ID and sort by the Jaccard score. This identifies the state
+    standards that contain the most similar skills and concept targets for student
     mastery (not necessarily the most similar semantically).
 
     Args:
-        state_standard_code (str): The statement code of the state standard
-        jurisdiction (str): The jurisdiction of the state standard
+        ccssm_standard_code (str): The statement code of the CCSSM standard
+        jurisdiction (str): The jurisdiction of the CCSSM standard (typically 'Multi-State')
         data (dict): Dictionary containing the loaded datasets
 
     Returns:
@@ -147,47 +146,67 @@ def find_best_ccssm_match(state_standard_code, jurisdiction, data):
     crosswalk_data = data['crosswalk_data']
     standards_data = data['standards_framework_items_data']
 
-    # First, find the state standard by its statement code and jurisdiction
-    state_standard = standards_data[
-        (standards_data['statementCode'] == state_standard_code) &
+    # First, find the CCSSM standard by its statement code and jurisdiction
+    ccssm_standard = standards_data[
+        (standards_data['statementCode'] == ccssm_standard_code) &
         (standards_data['jurisdiction'] == jurisdiction)
     ]
 
-    if len(state_standard) == 0:
-        print(f'❌ State standard not found: {state_standard_code}')
+    if len(ccssm_standard) == 0:
+        print(f'❌ CCSSM standard not found: {ccssm_standard_code}')
         return None
 
-    state_standard = state_standard.iloc[0]
-    state_standard_id = state_standard['identifier']  # Use 'identifier' column for crosswalk matching
+    ccssm_standard = ccssm_standard.iloc[0]
+    ccssm_standard_uuid = ccssm_standard['caseIdentifierUUID']  # Use 'caseIdentifierUUID' for crosswalk matching
 
-    print(f'✅ Found state standard: {state_standard_code}')
-    print(f'  Identifier: {state_standard_id}')
-    print(f'  Description: {state_standard["description"]}')
-    print(f'  Jurisdiction: {state_standard["jurisdiction"]}')
+    print(f'✅ Found CCSSM standard: {ccssm_standard_code}')
+    print(f'  Case UUID: {ccssm_standard_uuid}')
+    print(f'  Description: {ccssm_standard["description"]}')
+    print(f'  Jurisdiction: {ccssm_standard["jurisdiction"]}')
 
-    # Filter crosswalk data for this state standard
+    # Filter crosswalk data for this CCSSM standard (it's the target in relationships)
+    # and filter for Texas matches only
     matches = crosswalk_data[
-        crosswalk_data['sourceEntityValue'] == state_standard_id
+        crosswalk_data['targetEntityValue'] == ccssm_standard_uuid
     ].copy()
 
     if len(matches) == 0:
-        print(f'\n❌ No CCSSM matches found for {state_standard_code}')
+        print(f'\n❌ No state standard matches found for {ccssm_standard_code}')
         return None
 
+    # Join with standards data to get jurisdiction and filter for Texas
+    matches = matches.merge(
+        standards_data[['caseIdentifierUUID', 'jurisdiction']],
+        left_on='sourceEntityValue',
+        right_on='caseIdentifierUUID',
+        how='left',
+        suffixes=('', '_temp')
+    )
+
+    # Filter for Texas only
+    texas_matches = matches[matches['jurisdiction'] == 'Texas'].copy()
+
+    if len(texas_matches) == 0:
+        print(f'\n❌ No Texas standard matches found for {ccssm_standard_code}')
+        return None
+
+    # Drop the temporary columns added for filtering
+    texas_matches = texas_matches.drop(columns=['caseIdentifierUUID', 'jurisdiction'])
+
     # Sort by Jaccard score (highest first)
-    matches = matches.sort_values('jaccard', ascending=False)
+    texas_matches = texas_matches.sort_values('jaccard', ascending=False)
 
-    print(f'\n✅ Found {len(matches)} CCSSM matches for {state_standard_code}')
-    print(f'\n📊 Top match (highest Jaccard score):')
+    print(f'\n✅ Found {len(texas_matches)} Texas standard matches for {ccssm_standard_code}')
+    print(f'\n📊 Top Texas match (highest Jaccard score):')
 
-    top_match = matches.iloc[0]
-    print(f'  CCSSM Standard UUID: {top_match["targetEntityValue"]}')
+    top_match = texas_matches.iloc[0]
+    print(f'  State Standard UUID: {top_match["sourceEntityValue"]}')
     print(f'  Jaccard Score: {top_match["jaccard"]:.4f}')
     print(f'  Shared LC Count: {top_match["sharedLCCount"]}')
     print(f'  State LC Count: {top_match["stateLCCount"]}')
     print(f'  CCSS LC Count: {top_match["ccssLCCount"]}')
 
-    return matches
+    return texas_matches
 
 
 """
@@ -280,32 +299,32 @@ def enrich_crosswalks_with_metadata(matches, data):
 
     standards_data = data['standards_framework_items_data']
 
-    # Rename columns to avoid conflicts when merging state and CCSS metadata
-    # We'll merge the same standards dataset twice (once for state, once for CCSS)
+    # Rename columns to avoid conflicts when merging CCSS and state metadata
+    # We'll merge the same standards dataset twice (once for CCSS, once for state)
 
-    # Join with state standard metadata (source)
-    state_standards = standards_data[['identifier', 'statementCode', 'description',
-                                      'gradeLevel', 'academicSubject', 'jurisdiction']].copy()
-    state_standards.columns = ['state_identifier', 'statementCode_state', 'description_state',
-                               'gradeLevel_state', 'academicSubject_state', 'jurisdiction']
+    # Join with CCSS standard metadata (target)
+    ccss_standards = standards_data[['caseIdentifierUUID', 'statementCode', 'description',
+                                     'gradeLevel', 'academicSubject', 'jurisdiction']].copy()
+    ccss_standards.columns = ['ccss_uuid', 'statementCode_ccss', 'description_ccss',
+                              'gradeLevel_ccss', 'academicSubject_ccss', 'jurisdiction_ccss']
 
     enriched = matches.merge(
-        state_standards,
-        left_on='sourceEntityValue',
-        right_on='state_identifier',
+        ccss_standards,
+        left_on='targetEntityValue',
+        right_on='ccss_uuid',
         how='left'
     )
 
-    # Join with CCSS standard metadata (target)
-    ccss_standards = standards_data[['identifier', 'statementCode', 'description',
-                                     'gradeLevel', 'academicSubject']].copy()
-    ccss_standards.columns = ['ccss_identifier', 'statementCode_ccss', 'description_ccss',
-                              'gradeLevel_ccss', 'academicSubject_ccss']
+    # Join with state standard metadata (source)
+    state_standards = standards_data[['caseIdentifierUUID', 'statementCode', 'description',
+                                      'gradeLevel', 'academicSubject', 'jurisdiction']].copy()
+    state_standards.columns = ['state_uuid', 'statementCode_state', 'description_state',
+                               'gradeLevel_state', 'academicSubject_state', 'jurisdiction']
 
     enriched = enriched.merge(
-        ccss_standards,
-        left_on='targetEntityValue',
-        right_on='ccss_identifier',
+        state_standards,
+        left_on='sourceEntityValue',
+        right_on='state_uuid',
         how='left'
     )
 
@@ -314,16 +333,17 @@ def enrich_crosswalks_with_metadata(matches, data):
 
     for idx, (_, row) in enumerate(enriched.head(3).iterrows(), 1):
         print(f'Match #{idx} (Jaccard: {row["jaccard"]:.4f}):')
+        print(f'  CCSS STANDARD:')
+        print(f'    Code: {row["statementCode_ccss"]}')
+        print(f'    Jurisdiction: {row["jurisdiction_ccss"]}')
+        print(f'    Grade Level: {row["gradeLevel_ccss"]}')
+        print(f'    Description: {row["description_ccss"]}')
+        print(f'  ')
         print(f'  STATE STANDARD:')
         print(f'    Code: {row["statementCode_state"]}')
         print(f'    Jurisdiction: {row["jurisdiction"]}')
         print(f'    Grade Level: {row["gradeLevel_state"]}')
         print(f'    Description: {row["description_state"]}')
-        print(f'  ')
-        print(f'  CCSS STANDARD:')
-        print(f'    Code: {row["statementCode_ccss"]}')
-        print(f'    Grade Level: {row["gradeLevel_ccss"]}')
-        print(f'    Description: {row["description_ccss"]}')
         print(f'  ')
         print(f'  ALIGNMENT METRICS:')
         print(f'    Shared LCs: {row["sharedLCCount"]} / State LCs: {row["stateLCCount"]} / CCSS LCs: {row["ccssLCCount"]}')
@@ -416,8 +436,8 @@ def show_shared_learning_components(state_standard_code, ccss_standard_code, sta
     ]
 
     print(f'\n✅ LEARNING COMPONENTS ANALYSIS:\n')
-    print(f'State Standard: {state_standard_code}')
     print(f'CCSS Standard: {ccss_standard_code}')
+    print(f'State Standard: {state_standard_code}')
     print()
 
     print(f'📊 SHARED LEARNING COMPONENTS ({len(shared_lcs)}):')
@@ -453,8 +473,8 @@ def main():
     data = load_crosswalk_data()
 
     print('\n' + '='*70)
-    print('🔄 Step 2: Find the best-matching CCSSM standard for a state standard...')
-    matches = find_best_ccssm_match(TARGET_STATE_STANDARD_CODE, TARGET_STATE_JURISDICTION, data)
+    print('🔄 Step 2: Find the best-matching state standards for a CCSSM standard...')
+    matches = find_best_state_matches(TARGET_CCSSM_STANDARD_CODE, TARGET_CCSSM_JURISDICTION, data)
 
     if matches is not None and len(matches) > 0:
         print('\n' + '='*70)
@@ -468,7 +488,7 @@ def main():
         if enriched is not None and len(enriched) > 0:
             print('='*70)
             print('🔄 Step 5: Join crosswalks to Learning Components...')
-            # Use the top match for detailed LC analysis
+            # Use the top match for detailed LC analysis (already filtered for Texas)
             top_match = enriched.iloc[0]
             show_shared_learning_components(
                 top_match['statementCode_state'],

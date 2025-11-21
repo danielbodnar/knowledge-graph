@@ -9,10 +9,9 @@ const { parse } = require('csv-parse/sync');
 require('dotenv').config();
 
 // Domain Constants
-// Pick a state standard to find its best CCSSM match
-// Note: We need to specify both the code AND jurisdiction since multiple states may use the same code
-const TARGET_STATE_STANDARD_CODE = '111.26.b.4.D';  // Texas 6th grade math standard on rates
-const TARGET_STATE_JURISDICTION = 'Texas';
+// Pick a CCSSM standard to find its best state standard matches
+const TARGET_CCSSM_STANDARD_CODE = '6.NS.C.6.c';  // Common Core 6th grade math standard on positioning integers on number lines
+const TARGET_CCSSM_JURISDICTION = 'Multi-State';
 
 // Environment setup
 const dataDir = process.env.KG_DATA_PATH;
@@ -94,57 +93,78 @@ function loadCrosswalkData(aq) {
 
 
 /* ================================
-   STEP 2: FIND THE BEST-MATCHING CCSSM STANDARD
+   STEP 2: FIND THE BEST-MATCHING STATE STANDARDS
    ================================ */
 
-function findBestCcssmMatch(stateStandardCode, jurisdiction, data, aq) {
+function findBestStateMatches(ccssmStandardCode, jurisdiction, data, aq) {
   /**
-   * Find the best CCSSM match for a state standard
+   * Find the best state standard matches for a CCSSM standard
    *
-   * Purpose: To find the best CCSS match for a state standard, filter rows by the
-   * state standard ID and sort by the Jaccard score. This identifies the CCSSM
-   * standard that contains the most similar skills and concept targets for student
+   * Purpose: To find the best state standard matches for a CCSSM standard, filter rows by the
+   * CCSSM standard ID and sort by the Jaccard score. This identifies the state
+   * standards that contain the most similar skills and concept targets for student
    * mastery (not necessarily the most similar semantically).
    */
 
   const { crosswalkData, standardsFrameworkItemsData } = data;
 
-  // First, find the state standard by its statement code and jurisdiction
-  const stateStandard = standardsFrameworkItemsData
-    .params({ code: stateStandardCode, juris: jurisdiction })
+  // First, find the CCSSM standard by its statement code and jurisdiction
+  const ccssmStandard = standardsFrameworkItemsData
+    .params({ code: ccssmStandardCode, juris: jurisdiction })
     .filter(d => d.statementCode === code && d.jurisdiction === juris)
     .object();
 
-  if (!stateStandard || !stateStandard.statementCode) {
-    console.log(`❌ State standard not found: ${stateStandardCode}`);
+  if (!ccssmStandard || !ccssmStandard.statementCode) {
+    console.log(`❌ CCSSM standard not found: ${ccssmStandardCode}`);
     return null;
   }
 
-  const stateStandardId = stateStandard.identifier; // Use 'identifier' column for crosswalk matching
+  const ccssmStandardUuid = ccssmStandard.caseIdentifierUUID; // Use 'caseIdentifierUUID' for crosswalk matching
 
-  console.log(`✅ Found state standard: ${stateStandardCode}`);
-  console.log(`  Identifier: ${stateStandardId}`);
-  console.log(`  Description: ${stateStandard.description}`);
-  console.log(`  Jurisdiction: ${stateStandard.jurisdiction}`);
+  console.log(`✅ Found CCSSM standard: ${ccssmStandardCode}`);
+  console.log(`  Case UUID: ${ccssmStandardUuid}`);
+  console.log(`  Description: ${ccssmStandard.description}`);
+  console.log(`  Jurisdiction: ${ccssmStandard.jurisdiction}`);
 
-  // Filter crosswalk data for this state standard
+  // Filter crosswalk data for this CCSSM standard (it's the target in relationships)
+  // and filter for Texas matches only
   const matches = crosswalkData
-    .params({ stateId: stateStandardId })
-    .filter(d => d.sourceEntityValue === stateId);
+    .params({ ccssmId: ccssmStandardUuid })
+    .filter(d => d.targetEntityValue === ccssmId);
 
   if (matches.numRows() === 0) {
-    console.log(`\n❌ No CCSSM matches found for ${stateStandardCode}`);
+    console.log(`\n❌ No state standard matches found for ${ccssmStandardCode}`);
     return null;
   }
 
-  // Sort by Jaccard score (highest first)
-  const sortedMatches = matches.orderby(aq.desc('jaccard'));
+  // Join with standards data to get jurisdiction and filter for Texas
+  const matchesWithJurisdiction = matches
+    .join(
+      standardsFrameworkItemsData.select('caseIdentifierUUID', 'jurisdiction'),
+      ['sourceEntityValue', 'caseIdentifierUUID']
+    );
 
-  console.log(`\n✅ Found ${sortedMatches.numRows()} CCSSM matches for ${stateStandardCode}`);
-  console.log(`\n📊 Top match (highest Jaccard score):`);
+  // Filter for Texas only
+  const texasMatches = matchesWithJurisdiction
+    .params({ state: 'Texas' })
+    .filter(d => d.jurisdiction === state);
+
+  if (texasMatches.numRows() === 0) {
+    console.log(`\n❌ No Texas standard matches found for ${ccssmStandardCode}`);
+    return null;
+  }
+
+  // Drop the temporary columns added for filtering to avoid conflicts in later joins
+  const texasMatchesClean = texasMatches.select(aq.not('caseIdentifierUUID', 'jurisdiction'));
+
+  // Sort by Jaccard score (highest first)
+  const sortedMatches = texasMatchesClean.orderby(aq.desc('jaccard'));
+
+  console.log(`\n✅ Found ${sortedMatches.numRows()} Texas standard matches for ${ccssmStandardCode}`);
+  console.log(`\n📊 Top Texas match (highest Jaccard score):`);
 
   const topMatch = sortedMatches.object();
-  console.log(`  CCSSM Standard UUID: ${topMatch.targetEntityValue}`);
+  console.log(`  State Standard UUID: ${topMatch.sourceEntityValue}`);
   console.log(`  Jaccard Score: ${parseFloat(topMatch.jaccard).toFixed(4)}`);
   console.log(`  Shared LC Count: ${topMatch.sharedLCCount}`);
   console.log(`  State LC Count: ${topMatch.stateLCCount}`);
@@ -242,35 +262,36 @@ function enrichCrosswalksWithMetadata(matches, data, aq) {
 
   const { standardsFrameworkItemsData } = data;
 
-  // Rename columns to avoid conflicts when merging state and CCSS metadata
-  // We'll merge the same standards dataset twice (once for state, once for CCSS)
+  // Rename columns to avoid conflicts when merging CCSS and state metadata
+  // We'll merge the same standards dataset twice (once for CCSS, once for state)
 
-  // Join with state standard metadata (source)
+  // Join with CCSS standard metadata (target)
   const enriched = matches
     .join(
-      standardsFrameworkItemsData.select('identifier', 'statementCode', 'description',
+      standardsFrameworkItemsData.select('caseIdentifierUUID', 'statementCode', 'description',
                                          'gradeLevel', 'academicSubject', 'jurisdiction')
         .rename({
-          identifier: 'state_identifier',
+          caseIdentifierUUID: 'ccss_uuid',
+          statementCode: 'statementCode_ccss',
+          description: 'description_ccss',
+          gradeLevel: 'gradeLevel_ccss',
+          academicSubject: 'academicSubject_ccss',
+          jurisdiction: 'jurisdiction_ccss'
+        }),
+      ['targetEntityValue', 'ccss_uuid']
+    )
+    // Join with state standard metadata (source)
+    .join(
+      standardsFrameworkItemsData.select('caseIdentifierUUID', 'statementCode', 'description',
+                                         'gradeLevel', 'academicSubject', 'jurisdiction')
+        .rename({
+          caseIdentifierUUID: 'state_uuid',
           statementCode: 'statementCode_state',
           description: 'description_state',
           gradeLevel: 'gradeLevel_state',
           academicSubject: 'academicSubject_state'
         }),
-      ['sourceEntityValue', 'state_identifier']
-    )
-    // Join with CCSS standard metadata (target)
-    .join(
-      standardsFrameworkItemsData.select('identifier', 'statementCode', 'description',
-                                         'gradeLevel', 'academicSubject')
-        .rename({
-          identifier: 'ccss_identifier',
-          statementCode: 'statementCode_ccss',
-          description: 'description_ccss',
-          gradeLevel: 'gradeLevel_ccss',
-          academicSubject: 'academicSubject_ccss'
-        }),
-      ['targetEntityValue', 'ccss_identifier']
+      ['sourceEntityValue', 'state_uuid']
     );
 
   console.log(`\n✅ Enriched crosswalk data with standards metadata\n`);
@@ -280,16 +301,17 @@ function enrichCrosswalksWithMetadata(matches, data, aq) {
 
   top3.forEach((row, idx) => {
     console.log(`Match #${idx + 1} (Jaccard: ${parseFloat(row.jaccard).toFixed(4)}):`);
+    console.log(`  CCSS STANDARD:`);
+    console.log(`    Code: ${row.statementCode_ccss}`);
+    console.log(`    Jurisdiction: ${row.jurisdiction_ccss}`);
+    console.log(`    Grade Level: ${row.gradeLevel_ccss}`);
+    console.log(`    Description: ${row.description_ccss}`);
+    console.log(`  `);
     console.log(`  STATE STANDARD:`);
     console.log(`    Code: ${row.statementCode_state}`);
     console.log(`    Jurisdiction: ${row.jurisdiction}`);
     console.log(`    Grade Level: ${row.gradeLevel_state}`);
     console.log(`    Description: ${row.description_state}`);
-    console.log(`  `);
-    console.log(`  CCSS STANDARD:`);
-    console.log(`    Code: ${row.statementCode_ccss}`);
-    console.log(`    Grade Level: ${row.gradeLevel_ccss}`);
-    console.log(`    Description: ${row.description_ccss}`);
     console.log(`  `);
     console.log(`  ALIGNMENT METRICS:`);
     console.log(`    Shared LCs: ${row.sharedLCCount} / State LCs: ${row.stateLCCount} / CCSS LCs: ${row.ccssLCCount}`);
@@ -410,8 +432,8 @@ async function main() {
   const data = loadCrosswalkData(aq);
 
   console.log('\n' + '='.repeat(70));
-  console.log('🔄 Step 2: Find the best-matching CCSSM standard for a state standard...');
-  const matches = findBestCcssmMatch(TARGET_STATE_STANDARD_CODE, TARGET_STATE_JURISDICTION, data, aq);
+  console.log('🔄 Step 2: Find the best-matching state standards for a CCSSM standard...');
+  const matches = findBestStateMatches(TARGET_CCSSM_STANDARD_CODE, TARGET_CCSSM_JURISDICTION, data, aq);
 
   if (matches && matches.numRows() > 0) {
     console.log('\n' + '='.repeat(70));
@@ -425,7 +447,7 @@ async function main() {
     if (enriched && enriched.numRows() > 0) {
       console.log('='.repeat(70));
       console.log('🔄 Step 5: Join crosswalks to Learning Components...');
-      // Use the top match for detailed LC analysis
+      // Use the top match for detailed LC analysis (already filtered for Texas)
       const topMatch = enriched.object();
       showSharedLearningComponents(
         topMatch.statementCode_state,

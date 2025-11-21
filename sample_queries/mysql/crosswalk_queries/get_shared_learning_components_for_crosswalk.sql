@@ -1,3 +1,7 @@
+-- Get the Learning Components that support both a state standard and a CCSSM standard
+-- Returns three categories: shared LCs (in both), state-only LCs, and CCSSM-only LCs
+-- This shows the pedagogical overlap and differences between crosswalked standards
+
 WITH state_lcs AS (
   SELECT lc.`identifier`, lc.`description`
   FROM relationships r
