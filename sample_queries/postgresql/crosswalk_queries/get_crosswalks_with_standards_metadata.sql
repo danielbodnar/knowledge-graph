@@ -1,5 +1,5 @@
--- Find state standard matches for a given CCSSM standard with full metadata
--- Returns multiple matching state standards ordered by similarity
+-- Find Texas state standard matches for a given CCSSM standard with full metadata
+-- Returns multiple matching Texas state standards ordered by similarity
 
 SELECT
   -- CCSSM Standard Information
@@ -27,7 +27,8 @@ JOIN standards_framework_item state_std
 JOIN standards_framework_item ccss_std
   ON ccss_std."caseIdentifierUUID" = r."targetEntityValue"
 WHERE r."relationshipType" = 'hasStandardAlignment'
-  AND ccss_std."statementCode" = '6.RP.A.2'
+  AND ccss_std."statementCode" = '6.EE.B.5'
   AND ccss_std."jurisdiction" = 'Multi-State'
+  AND state_std."jurisdiction" = 'Texas'
 ORDER BY r."jaccard" DESC
 LIMIT 10;

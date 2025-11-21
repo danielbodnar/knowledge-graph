@@ -31,7 +31,7 @@ load_dotenv()
 
 # Domain Constants
 # Pick a CCSSM standard to find its best state standard matches
-TARGET_CCSSM_STANDARD_CODE = '6.NS.C.6.c'  # Common Core 6th grade math standard on positioning integers on number lines
+TARGET_CCSSM_STANDARD_CODE = '6.EE.B.5'  # Common Core 6th grade math standard on solving equations and inequalities
 TARGET_CCSSM_JURISDICTION = 'Multi-State'
 
 # Environment Setup

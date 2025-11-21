@@ -10,7 +10,7 @@ require('dotenv').config();
 
 // Domain Constants
 // Pick a CCSSM standard to find its best state standard matches
-const TARGET_CCSSM_STANDARD_CODE = '6.NS.C.6.c';  // Common Core 6th grade math standard on positioning integers on number lines
+const TARGET_CCSSM_STANDARD_CODE = '6.EE.B.5';  // Common Core 6th grade math standard on solving equations and inequalities
 const TARGET_CCSSM_JURISDICTION = 'Multi-State';
 
 // Environment setup

@@ -1,5 +1,5 @@
--- Get all crosswalks that meet or exceed a specified Jaccard similarity threshold
--- Ordered by state jurisdiction, CCSSM standard code, then Jaccard score
+-- Get all Texas crosswalks that meet or exceed a specified Jaccard similarity threshold
+-- Ordered by CCSSM standard code, then Jaccard score
 
 SELECT
   state_std.`jurisdiction` AS state_jurisdiction,
@@ -16,7 +16,7 @@ JOIN standards_framework_item ccss_std
   ON ccss_std.`caseIdentifierUUID` = r.`targetEntityValue`
 WHERE r.`relationshipType` = 'hasStandardAlignment'
   AND r.`jaccard` >= 0.7
+  AND state_std.`jurisdiction` = 'Texas'
 ORDER BY
-  state_std.`jurisdiction`,
   ccss_std.`statementCode`,
   r.`jaccard` DESC;

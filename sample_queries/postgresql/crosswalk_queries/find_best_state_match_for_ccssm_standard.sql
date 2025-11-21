@@ -1,6 +1,6 @@
--- Find the best state standard matches for a given CCSSM standard
+-- Find the best Texas state standard matches for a given CCSSM standard
 -- Returns crosswalks ordered by Jaccard score (highest similarity first)
--- with metadata about both the CCSSM and matching state standards
+-- with metadata about both the CCSSM and matching Texas state standards
 
 SELECT
   -- CCSSM Standard Information
@@ -30,7 +30,8 @@ JOIN standards_framework_item state
 JOIN standards_framework_item ccss
   ON ccss."caseIdentifierUUID" = r."targetEntityValue"
 WHERE r."relationshipType" = 'hasStandardAlignment'
-  AND ccss."statementCode" = '6.RP.A.2'
+  AND ccss."statementCode" = '6.EE.B.5'
   AND ccss."jurisdiction" = 'Multi-State'
+  AND state."jurisdiction" = 'Texas'
 ORDER BY r."jaccard" DESC
 LIMIT 10;
