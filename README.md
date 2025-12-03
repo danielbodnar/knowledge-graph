@@ -32,6 +32,8 @@ For complete setup instructions and usage examples, see the [full docs](https://
 
 ##  **Quick Start**
 
+**v1.2.0 will be the final version where Knowledge Graph can be downloaded as CSV flat files. Starting from v1.3.0 onwards, Knowledge Graph will be accessible as graph-native JSON flat files and we’ll be starting to grant access to our REST API in early 2026. Any CSV and JSON flat files that were previously downloaded will be unaffected.**
+
 The knowledge graph data is available for download in both CSV and JSON formats. The graph data is exported with each file representing a specific entity type, and a relationships file capturing the connections between entities.
 
 **CSV files:** UTF-8 encoded with comma delimiters and quoted fields. All CSV files include header rows with column names.
