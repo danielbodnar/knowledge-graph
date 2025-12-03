@@ -1,3 +1,5 @@
+**v1.2.0 will be the final version where Knowledge Graph can be downloaded as CSV flat files. Starting from v1.3.0 onwards, Knowledge Graph will be accessible as graph-native JSON flat files and we’ll be starting to grant access to our REST API in early 2026. Any CSV and JSON flat files that were previously downloaded will be unaffected.**
+
 # PostgreSQL Import Guide
 
 This guide provides instructions for loading the Learning Commons Knowledge Graph dataset into a PostgreSQL database.
