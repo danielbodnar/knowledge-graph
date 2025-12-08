@@ -1,8 +1,8 @@
 # Compare Standards
 
-Demonstrates how to compare educational standards across different frameworks (Common Core vs Texas)
+Demonstrates how to use crosswalk data to compare state standards to Common Core State Standards (CCSSM) using the Knowledge Graph dataset.
 
-Follow the step-by-step tutorial [here](https://docs.learningcommons.org/knowledge-graph/v1-1-0/getting-started/tutorials/comparing-standards-across-states)
+Follow the step-by-step tutorial [here](https://docs.learningcommons.org/knowledge-graph/v1-2-0/getting-started/tutorials/comparing-standards-across-states)
 
 ## Prerequisites
 
