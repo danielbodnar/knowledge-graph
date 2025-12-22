@@ -1,9 +1,7 @@
 <img style="width:100%" alt="knowledge_graph_banner" src="https://raw.githubusercontent.com/learning-commons-org/.github/refs/heads/main/assets/kg_hero.png" />
 
 <p align="center">
-  <a href="https://docs.learningcommons.org/knowledge-graph/v1-1-0/getting-started/download-the-data/" target="_blank">Getting set up</a>
-  •
-  <a href="https://docs.learningcommons.org/knowledge-graph/v1-1-0/getting-started/tutorials/tutorial-overview" target="_blank">Tutorials</a>
+  <a href="https://docs.learningcommons.org/knowledge-graph/v1-3-0/getting-started/download-the-data/" target="_blank">Getting set up</a>
 </p>
 
 
@@ -25,27 +23,16 @@ For complete setup instructions and usage examples, see the [full docs](https://
 
 | Path | Description |
 | :---- | :---- |
-| [import\_scripts/](./import_scripts/) | Helper scripts to import Knowledge Graph data into relational databases |
-| [sample\_queries/](./sample_queries/) | Example SQL queries for exploring Knowledge Graph data |
-| [tutorials/](./tutorials/) | Standalone example apps to demonstrate how Knowledge Graph data could be applied to solve different use cases |
 | [LICENSE](./LICENSE.md) | Open source license details |
 
 ##  **Quick Start**
 
-**v1.2.0 will be the final version where Knowledge Graph can be downloaded as CSV flat files. Starting from v1.3.0 onwards, Knowledge Graph will be accessible as graph-native JSON flat files and we’ll be starting to grant access to our REST API in early 2026. Any CSV and JSON flat files that were previously downloaded will be unaffected.**
-
-The knowledge graph data is available for download in both CSV and JSON formats. The graph data is exported with each file representing a specific entity type, and a relationships file capturing the connections between entities.
-
-**CSV files:** UTF-8 encoded with comma delimiters and quoted fields. All CSV files include header rows with column names.
-
-**JSON files:** Newline delimited JSON format with UTF-8 encoding.
+The knowledge graph data is available for download in graph native JSON format.
 
 ## Files
 
-* `StandardsFramework`: Educational standards frameworks  
-* `StandardsFrameworkItem`: Individual standards and learning objectives within frameworks  
-* `LearningComponent`: Granular, precise representations of individual skills or concepts 
-* `Relationships`: Connections and associations between all entity types
+* `nodes.jsonl`: This file contains graph node records, defining each node by a unique identifier, labels, and a set of associated properties.
+* `relationships.jsonl`: This file contains graph relationship records, describing how nodes are connected, including the relationship type, properties, and the source and target nodes.
 
 ## Download options
 
@@ -55,52 +42,19 @@ There are two options to download the files: direct s3 links, or using curl comm
 
 Click links to download files directly. Files will download to your browser's default location (typically `~/Downloads`).
 
-**CSV files:**  
-- [StandardsFramework.csv](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/csv/StandardsFramework.csv?ref=github)  
-- [StandardsFrameworkItem.csv](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/csv/StandardsFrameworkItem.csv?ref=github)  
-- [LearningComponent.csv](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/csv/LearningComponent.csv?ref=github)  
-- [Relationships.csv](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/csv/Relationships.csv?ref=github)
-
-**For SQL database imports:** Move the downloaded CSV files to `/tmp/kg-data/` to use the import scripts without modification:
-
-```bash
-mkdir -p /tmp/kg-data
-mv ~/Downloads/StandardsFramework.csv ~/Downloads/StandardsFrameworkItem.csv ~/Downloads/LearningComponent.csv ~/Downloads/Relationships.csv /tmp/kg-data/
-```  
-
 **JSON files:**  
-- [StandardsFramework.json](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/json/StandardsFramework.json?ref=github)  
-- [StandardsFrameworkItem.json](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/json/StandardsFrameworkItem.json?ref=github)  
-- [LearningComponent.json](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/json/LearningComponent.json?ref=github)  
-- [Relationships.json](https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/json/Relationships.json?ref=github)  
+- [nodes.jsonl](https://cdn.learningcommons.org/knowledge-graph/v1.3.0/exports/nodes.jsonl?ref=github)  
+- [relationships.jsonl](https://cdn.learningcommons.org/knowledge-graph/v1.3.0/exports/relationships.jsonl?ref=github)  
 
 ### Using curl commands  
 
 If you don't have `curl` installed, see [installation instructions](https://github.com/curl/curl).  
 
-**Recommended**: Download files to `/tmp/kg-data/` for compatibility with the SQL import scripts:
-
-```bash
-# Create directory and download CSV files
-mkdir -p /tmp/kg-data
-cd /tmp/kg-data
-
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/csv/StandardsFramework.csv?ref=gh_curl" -o StandardsFramework.csv
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/csv/StandardsFrameworkItem.csv?ref=gh_curl" -o StandardsFrameworkItem.csv
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/csv/LearningComponent.csv?ref=gh_curl" -o LearningComponent.csv
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/csv/Relationships.csv?ref=gh_curl" -o Relationships.csv
-```
 ```bash
 # Download JSON files
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/json/StandardsFramework.json?ref=gh_curl" -o StandardsFramework.json
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/json/StandardsFrameworkItem.json?ref=gh_curl" -o StandardsFrameworkItem.json
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/json/LearningComponent.json?ref=gh_curl" -o LearningComponent.json
-curl -L "https://aidt-knowledge-graph-datasets-public-prod.s3.us-west-2.amazonaws.com/knowledge-graph/v1.2.0/json/Relationships.json?ref=gh_curl" -o Relationships.json
+curl -L "https://cdn.learningcommons.org/knowledge-graph/v1.3.0/exports/nodes.jsonl?ref=gh_curl" -o nodes.jsonl
+curl -L "https://cdn.learningcommons.org/knowledge-graph/v1.3.0/exports/relationships.jsonl?ref=gh_curl" -o relationships.jsonl
 ```
-
-### **Next steps**
-
-This quick start walked you through how to download Knowledge Graph so you can start using it. You can explore next steps under [import\_scripts/](./import_scripts/), [sample\_queries/](./sample_queries/) and [tutorials/](./tutorials/).
 
 ## **Support & Feedback**
 
