@@ -54,7 +54,7 @@ curl -L "https://cdn.learningcommons.org/knowledge-graph/v1.3.0/exports/relation
 
 ## Querying with jq
 
-One option to consume and query the JSONL files is using [jq](https://jqlang.github.io/jq/). Example to extract Common Core math standards:
+One option to query the JSONL files is using [jq](https://jqlang.github.io/jq/). Example to extract Common Core math standards:
 
 ```bash
 jq -c 'select((.labels | contains(["StandardsFrameworkItem"])) and .properties.jurisdiction == "Multi-State" and .properties.academicSubject == "Mathematics")' nodes.jsonl > common_core_math_standards.jsonl
