@@ -15,8 +15,6 @@ Key use cases include:
 * **Compare state standards**: Adapt content aligned to one state standard to other states, initially in math across Common Core State Standards and 15+ additional states  
 * **Curriculum alignment:** Align your content or create additional materials aligned to curriculum (private-beta access only \- details below on how to join)
 
-Knowledge Graph is distributed as CSV and JSON export files, making it accessible without specialized infrastructure. These files reflect a graph-based model, allowing developers to work with the data in relational databases or other environments. This structure enables rich querying and supports AI-enhanced educational applications.
-
 For complete setup instructions and usage examples, see the [full docs](https://docs.learningcommons.org/knowledge-graph/).
 
 ## **Repository contents**
@@ -27,7 +25,7 @@ For complete setup instructions and usage examples, see the [full docs](https://
 
 ##  **Quick Start**
 
-The knowledge graph data is available for download in graph native JSON format.
+The knowledge graph data is available for download in graph native JSONL format.
 
 ## Files
 
@@ -36,13 +34,12 @@ The knowledge graph data is available for download in graph native JSON format.
 
 ## Download options
 
-There are two options to download the files: direct s3 links, or using curl commands.
+There are two options to download the files: direct links, or using curl commands.
 
-### Direct S3 links  
+### Direct links  
 
 Click links to download files directly. Files will download to your browser's default location (typically `~/Downloads`).
 
-**JSON files:**  
 - [nodes.jsonl](https://cdn.learningcommons.org/knowledge-graph/v1.3.0/exports/nodes.jsonl?ref=github)  
 - [relationships.jsonl](https://cdn.learningcommons.org/knowledge-graph/v1.3.0/exports/relationships.jsonl?ref=github)  
 
@@ -51,10 +48,22 @@ Click links to download files directly. Files will download to your browser's de
 If you don't have `curl` installed, see [installation instructions](https://github.com/curl/curl).  
 
 ```bash
-# Download JSON files
 curl -L "https://cdn.learningcommons.org/knowledge-graph/v1.3.0/exports/nodes.jsonl?ref=gh_curl" -o nodes.jsonl
 curl -L "https://cdn.learningcommons.org/knowledge-graph/v1.3.0/exports/relationships.jsonl?ref=gh_curl" -o relationships.jsonl
 ```
+
+## Querying with jq
+
+One option to consume and query the JSONL files is using [jq](https://jqlang.github.io/jq/). Example to extract Common Core math standards:
+
+```bash
+jq -c 'select((.labels | contains(["StandardsFrameworkItem"])) and .properties.jurisdiction == "Multi-State" and .properties.academicSubject == "Mathematics")' nodes.jsonl > common_core_math_standards.jsonl
+```
+
+This filters for nodes with:
+- Label: `StandardsFrameworkItem`
+- Jurisdiction: `Multi-State` (Common Core)
+- Academic Subject: `Mathematics`
 
 ## **Support & Feedback**
 
