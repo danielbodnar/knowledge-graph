@@ -15,6 +15,8 @@ Key use cases include:
 * **Compare state standards**: Adapt content aligned to one state standard to other states, initially in math across Common Core State Standards and 15+ additional states  
 * **Curriculum alignment:** Align your content or create additional materials aligned to curriculum (private-beta access only \- details below on how to join)
 
+Knowledge Graph is distributed as graph-native JSONL export files, making it accessible without specialized infrastructure. These files directly represent the underlying graph model, enabling developers to work with the data in graph databases, while remaining easy to ingest with standard data-processing tools. Developers can load the data into graph databases for relationship-centric querying or transform it for use in relational databases and data pipelines. This structure enables rich querying and supports AI-enhanced educational applications.
+
 For complete setup instructions and usage examples, see the [full docs](https://docs.learningcommons.org/knowledge-graph/).
 
 ## **Repository contents**
@@ -25,7 +27,7 @@ For complete setup instructions and usage examples, see the [full docs](https://
 
 ##  **Quick Start**
 
-The knowledge graph data is available for download in graph native JSONL format.
+The Knowledge graph data is available for download in newline delimited jsonl format with UTF-8 encoding. The graph data is exported with nodes.jsonl representing the nodes of the knowledge graph and the relationships.jsonl file capturing the connections between nodes.
 
 ## Files
 
