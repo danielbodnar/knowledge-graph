@@ -23,6 +23,7 @@ For complete setup instructions and usage examples, see the [full docs](https://
 
 | Path | Description |
 | :---- | :---- |
+| [tutorials/](./tutorials/) | Standalone example apps to demonstrate how Knowledge Graph data could be applied to solve different use cases |
 | [LICENSE](./LICENSE.md) | Open source license details |
 
 ##  **Quick Start**
