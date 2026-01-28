@@ -1,27 +1,24 @@
 # Generate Prerequisite Practice
 
-Demonstrates how to generate prerequisite-based practice questions using Knowledge Graph data covering:
-- **Data Loading**: Reading CSV files with educational frameworks and relationships
+Demonstrates how to generate prerequisite-based practice questions using the Knowledge Graph REST API, covering:
+- **API Integration**: Using REST API to query standards and learning progressions
 - **Prerequisite Analysis**: Finding standards that build towards a target standard
-- **Relationship Mapping**: Connecting learning components to prerequisite standards
-- **Practice Generation**: Creating structured practice questions based on prerequisite knowledge
+- **Learning Components**: Discovering granular learning components that support standards
+- **Practice Generation**: Creating structured practice questions based on prerequisite knowledge using AI
 
-**Features**: Common Core Math analysis, prerequisite relationship traversal, learning component mapping
-
-Follow the step-by-step tutorial [here](https://docs.learningcommons.org/knowledge-graph/v1-1-0/getting-started/tutorials/generating-prerequisite-practice-questions)
+> **Note:** The API is in limited early release and is only available to some private beta users. Because the API is an early release, current users should expect occasional breaking changes.
 
 ## Prerequisites
 
 - Python 3.8 or higher
-- Knowledge Graph CSV dataset files:
-  - `StandardsFrameworkItem.csv`
-  - `LearningComponent.csv`
-  - `Relationships.csv`
+- A Learning Commons Platform account
+- An API key generated in the Learning Commons Platform
+- OpenAI API key
 
 ## Dependencies
 
+- **requests**: HTTP library for API calls
 - **openai**: OpenAI API for generating practice questions
-- **pandas**: Data manipulation and analysis library
 - **python-dotenv**: Environment variable management
 
 ## Quick Start
@@ -37,7 +34,11 @@ Follow the step-by-step tutorial [here](https://docs.learningcommons.org/knowled
 
 2. **Set Environment Variables** (create `.env` file):
    ```bash
-   KG_DATA_PATH=/path/to/your/knowledge-graph/csv/files
+   # Knowledge Graph API credentials - get these from the Learning Commons Platform
+   API_KEY=your_api_key_here
+   BASE_URL=https://api.learningcommons.org/knowledge-graph/v0
+
+   # OpenAI API key for generating practice questions
    OPENAI_API_KEY=your_openai_api_key_here
    ```
 

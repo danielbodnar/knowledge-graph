@@ -3,26 +3,27 @@
    ================================ */
 
 // Dependencies
-const fs = require('fs');
-const path = require('path');
-const { parse } = require('csv-parse/sync');
 const OpenAI = require('openai');
 require('dotenv').config();
 
 // Constants
 const GENERATE_PRACTICE = true;
-// Filter criteria for mathematics standards
-const JURISDICTION = 'Multi-State';
-const ACADEMIC_SUBJECT = 'Mathematics';
 const TARGET_CODE = '6.NS.B.4';
 // OpenAI configuration
 const OPENAI_MODEL = 'gpt-4';
 const OPENAI_TEMPERATURE = 0.7;
 
 // Environment setup
-const dataDir = process.env.KG_DATA_PATH;
-if (!dataDir) {
-  console.error('❌ KG_DATA_PATH environment variable is not set.');
+const apiKey = process.env.API_KEY;
+const baseUrl = process.env.BASE_URL;
+
+if (!apiKey) {
+  console.error('❌ API_KEY environment variable is not set.');
+  process.exit(1);
+}
+
+if (!baseUrl) {
+  console.error('❌ BASE_URL environment variable is not set.');
   process.exit(1);
 }
 
@@ -34,195 +35,116 @@ const openai = new OpenAI({
    HELPER FUNCTIONS
    ================================ */
 
-function loadCSV(filename) {
+async function makeApiRequest(endpoint, params = {}) {
   try {
-    const content = fs.readFileSync(path.join(dataDir, filename), 'utf8');
-    return parse(content, { columns: true, skip_empty_lines: true });
+    const url = new URL(`${baseUrl}${endpoint}`);
+
+    // Handle array parameters (like gradeLevel)
+    Object.entries(params).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach(v => url.searchParams.append(key, v));
+      } else {
+        url.searchParams.append(key, value);
+      }
+    });
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'x-api-key': apiKey
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
   } catch (error) {
-    console.error(`❌ Error loading CSV file ${filename}: ${error.message}`);
+    console.error(`❌ Error making API request to ${endpoint}: ${error.message}`);
     throw error;
   }
 }
 
-
 /* ================================
-   STEP 1: LOAD DATA
+   STEP 2: GET PREREQUISITE STANDARDS
    ================================ */
-function loadData(aq) {
-  /* Load CSV data files and build filtered dataset
-   */
 
-  const standardsFrameworkItems = aq.from(loadCSV('StandardsFrameworkItem.csv'));
-  const learningComponents = aq.from(loadCSV('LearningComponent.csv'));
-  const relationships = aq.from(loadCSV('Relationships.csv'));
-
-  console.log('✅ Files loaded from KG CSV files');
-  console.log({
-    standardsFrameworkItems: standardsFrameworkItems.numRows(),
-    learningComponents: learningComponents.numRows(),
-    relationships: relationships.numRows()
+async function getStandardAndPrerequisites() {
+  // Find the target standard by statement code
+  const searchResult = await makeApiRequest('/academic-standards/search', {
+    statementCode: TARGET_CODE,
+    jurisdiction: 'Multi-State'
   });
 
-  // Filter for relevant StandardsFrameworkItems by jurisdiction and subject
-  const relevantStandards = standardsFrameworkItems
-    .params({ jurisdiction: JURISDICTION, academicSubject: ACADEMIC_SUBJECT })
-    .filter(d => d.jurisdiction === jurisdiction && d.academicSubject === academicSubject);
+  const targetStandard = searchResult[0] || null;
 
-  // Get array of relevant identifiers for filtering
-  const relevantStandardIds = relevantStandards.array('caseIdentifierUUID');
-  const relevantStandardSet = new Set(relevantStandardIds);
-
-  // Filter relationships for buildsTowards and supports relationships
-  const relevantRelationships = relationships
-    .filter(aq.escape(d =>
-      (d.relationshipType === 'buildsTowards' &&
-        relevantStandardSet.has(d.sourceEntityValue) &&
-        relevantStandardSet.has(d.targetEntityValue)) ||
-      (d.relationshipType === 'supports' &&
-        relevantStandardSet.has(d.targetEntityValue))
-    ));
-
-  // Get learning component IDs from supports relationships
-  const supportRelationships = relevantRelationships
-    .filter(d => d.relationshipType === 'supports');
-  const linkedLearningComponentIds = supportRelationships.array('sourceEntityValue');
-  const linkedLearningComponentSet = new Set(linkedLearningComponentIds);
-
-  // Filter learning components by identifier
-  const relevantLearningComponents = learningComponents
-    .filter(aq.escape(d => linkedLearningComponentSet.has(d.identifier)));
-
-  console.log('✅ Retrieved scoped graph:');
-  console.log({
-    standardsFrameworkItems: relevantStandards.numRows(),
-    learningComponents: relevantLearningComponents.numRows(),
-    relationships: relevantRelationships.numRows()
-  });
-
-  return {
-    relevantStandards,
-    relevantRelationships,
-    relevantLearningComponents
-  };
-}
-
-/* ================================
-   STEP 2: QUERY PREREQUISITE DATA
-   ================================ */
-function getStandardAndPrerequisites(relevantStandards, relevantRelationships) {
-  const targetStandardTable = relevantStandards
-    .params({ targetCode: TARGET_CODE })
-    .filter(d => d.statementCode === targetCode);
-
-  if (targetStandardTable.numRows() === 0) {
-    console.error(`❌ No StandardsFrameworkItem found for statementCode = "${TARGET_CODE}"`);
+  if (!targetStandard) {
+    console.error(`❌ No standard found for ${TARGET_CODE}`);
     return null;
   }
 
-  const targetStandard = targetStandardTable.object();
-  console.log(`✅ Found StandardsFrameworkItem for ${TARGET_CODE}:`)
-  console.log({
-    caseIdentifierUUID: targetStandard.caseIdentifierUUID,
-    statementCode: targetStandard.statementCode,
-    description: targetStandard.description
+  console.log(`✅ Found standard ${TARGET_CODE}:`);
+  console.log(`  UUID: ${targetStandard.caseIdentifierUUID}`);
+  console.log(`  Description: ${targetStandard.description}`);
+
+  // Get prerequisites
+  const prereqResult = await makeApiRequest(
+    `/academic-standards/${targetStandard.caseIdentifierUUID}/prerequisites`
+  );
+
+  const prerequisiteStandards = prereqResult.data;
+  console.log(`✅ Found ${prerequisiteStandards.length} prerequisite(s):`);
+  prerequisiteStandards.forEach(prereq => {
+    const description = prereq.description || 'No description';
+    const truncated = description.length > 80 ? description.substring(0, 80) + '...' : description;
+    console.log(`  ${prereq.statementCode}: ${truncated}`);
   });
-
-  const prerequisiteLinks = relevantRelationships
-    .params({ targetIdentifier: targetStandard.caseIdentifierUUID })
-    .filter(d => d.relationshipType === 'buildsTowards' &&
-      d.targetEntityValue === targetIdentifier);
-
-  const prerequisiteStandards = prerequisiteLinks
-    .join(relevantStandards, ['sourceEntityValue', 'caseIdentifierUUID'])
-    .select('sourceEntityValue', 'statementCode', 'description_2')
-    .rename({ sourceEntityValue: 'caseIdentifierUUID', description_2: 'standardDescription' });
-
-  console.log(`✅ Found ${prerequisiteStandards.numRows()} prerequisite(s) for ${targetStandard.statementCode}:`);
-  console.log(prerequisiteStandards.objects());
 
   return { targetStandard, prerequisiteStandards };
 }
 
-function getLearningComponentsForPrerequisites(prerequisiteStandards, relevantRelationships, relevantLearningComponents) {
-  const prerequisiteLearningComponents = prerequisiteStandards
-    .join(relevantRelationships, ['caseIdentifierUUID', 'targetEntityValue'])
-    .params({ supportsType: 'supports' })
-    .filter(d => d.relationshipType === supportsType)
-    .join(relevantLearningComponents, ['sourceEntityValue', 'identifier'])
-    .select('caseIdentifierUUID', 'statementCode', 'standardDescription', 'description_2')
-    .rename({ description_2: 'learningComponentDescription' });
+async function getLearningComponentsForPrerequisites(prerequisiteStandards) {
+  const prerequisiteLearningComponents = [];
 
-  console.log(`✅ Found ${prerequisiteLearningComponents.numRows()} supporting learning components for prerequisites:`);
-  console.log(prerequisiteLearningComponents.objects());
+  for (const prereq of prerequisiteStandards) {
+    const lcResult = await makeApiRequest(
+      `/academic-standards/${prereq.caseIdentifierUUID}/learning-components`
+    );
 
-  return prerequisiteLearningComponents;
-}
-
-function queryPrerequisiteData(aq, relevantStandards, relevantRelationships, relevantLearningComponents) {
-  /* Analyze prerequisite relationships for the target standard
-   * This step identifies prerequisites and supporting learning components
-   * 
-   * SQL:    WITH target AS (
-   *           SELECT "caseIdentifierUUID"
-   *           FROM standards_framework_item
-   *           WHERE "statementCode" = '6.NS.B.4'
-   *         ),
-   *         prerequisite_standards AS (
-   *           SELECT
-   *             sfi."caseIdentifierUUID",
-   *             sfi."statementCode",
-   *             sfi."description"
-   *           FROM standards_framework_item sfi
-   *           JOIN relationships r
-   *             ON sfi."caseIdentifierUUID" = r."sourceEntityValue"
-   *           JOIN target t
-   *             ON r."targetEntityValue" = t."caseIdentifierUUID"
-   *           WHERE r."relationshipType" = 'buildsTowards'
-   *         )
-   *         SELECT
-   *           ps."caseIdentifierUUID",
-   *           ps."statementCode",
-   *           ps."description",
-   *           lc."description"
-   *         FROM prerequisite_standards ps
-   *         JOIN relationships r
-   *           ON ps."caseIdentifierUUID" = r."targetEntityValue"
-   *         JOIN learning_component lc
-   *           ON r."sourceEntityValue" = lc."identifier"
-   *         WHERE r."relationshipType" = 'supports';
-   * 
-   * Cypher: MATCH (target:StandardsFrameworkItem {statementCode: '6.NS.B.4'})
-   *         MATCH (prereq:StandardsFrameworkItem)-[:buildsTowards]->(target)
-   *         MATCH (lc:LearningComponent)-[:supports]->(prereq)
-   *         RETURN prereq.caseIdentifierUUID, prereq.statementCode, prereq.description, 
-   *                lc.description
-   */
-
-  const standardAndPrereqData = getStandardAndPrerequisites(relevantStandards, relevantRelationships);
-  if (!standardAndPrereqData) {
-    return null;
+    for (const lc of lcResult.data) {
+      prerequisiteLearningComponents.push({
+        caseIdentifierUUID: prereq.caseIdentifierUUID,
+        statementCode: prereq.statementCode,
+        standardDescription: prereq.description,
+        learningComponentDescription: lc.description
+      });
+    }
   }
 
-  const { targetStandard, prerequisiteStandards } = standardAndPrereqData;
-  const prerequisiteLearningComponents = getLearningComponentsForPrerequisites(prerequisiteStandards, relevantRelationships, relevantLearningComponents);
+  console.log(`✅ Found ${prerequisiteLearningComponents.length} supporting learning components for prerequisites:`);
+  prerequisiteLearningComponents.slice(0, 5).forEach(lc => {
+    const description = lc.learningComponentDescription || 'No description';
+    const truncated = description.length > 80 ? description.substring(0, 80) + '...' : description;
+    console.log(`  ${truncated}`);
+  });
 
-  return { targetStandard, prerequisiteLearningComponents };
+  return prerequisiteLearningComponents;
 }
 
 /* ================================
    STEP 3: GENERATE PRACTICE
    ================================ */
+
 function packageContextData(targetStandard, prerequisiteLearningComponents) {
   /* Package the standards and learning components data for text generation
    * This creates a structured context that can be used for generating practice questions
    */
 
-  // Convert dataframe to context format for LLM
-  const allRows = prerequisiteLearningComponents.objects();
   const standardsMap = new Map();
 
   // Group learning components by standard for context
-  for (const row of allRows) {
+  for (const row of prerequisiteLearningComponents) {
     if (!standardsMap.has(row.caseIdentifierUUID)) {
       standardsMap.set(row.caseIdentifierUUID, {
         statementCode: row.statementCode,
@@ -244,30 +166,25 @@ function packageContextData(targetStandard, prerequisiteLearningComponents) {
     prereqStandards: Array.from(standardsMap.values())
   };
 
-  console.log(`✅ Packaged full standards context for text generation`);
-  console.log(JSON.stringify(fullStandardsContext, null, 2));
+  console.log('✅ Packaged full standards context for text generation');
   return fullStandardsContext;
 }
 
-function generatePracticeData(fullStandardsContext) {
-  /* Generate practice questions using OpenAI API
-   * This creates educational content based on prerequisite data
-   */
-  return async function generatePractice() {
-    console.log(`🔄 Generating practice questions for ${fullStandardsContext.targetStandard.statementCode}...`);
+async function generatePractice(fullStandardsContext) {
+  console.log(`🔄 Generating practice questions for ${fullStandardsContext.targetStandard.statementCode}...`);
 
-    try {
-      // Build prompt inline
-      let prerequisiteText = '';
-      for (const prereq of fullStandardsContext.prereqStandards) {
-        prerequisiteText += `- ${prereq.statementCode}: ${prereq.description}\n`;
-        prerequisiteText += '  Supporting Learning Components:\n';
-        for (const lc of prereq.supportingLearningComponents) {
-          prerequisiteText += `    • ${lc.description}\n`;
-        }
+  try {
+    // Build prompt inline
+    let prerequisiteText = '';
+    for (const prereq of fullStandardsContext.prereqStandards) {
+      prerequisiteText += `- ${prereq.statementCode}: ${prereq.description}\n`;
+      prerequisiteText += '  Supporting Learning Components:\n';
+      for (const lc of prereq.supportingLearningComponents) {
+        prerequisiteText += `    • ${lc.description}\n`;
       }
+    }
 
-      const prompt = `You are a math tutor helping middle school students. Based on the following information, generate 3 practice questions for the target standard. Questions should help reinforce the key concept and build on prerequisite knowledge.
+    const prompt = `You are a math tutor helping middle school students. Based on the following information, generate 3 practice questions for the target standard. Questions should help reinforce the key concept and build on prerequisite knowledge.
 
 Target Standard:
 - ${fullStandardsContext.targetStandard.statementCode}: ${fullStandardsContext.targetStandard.description}
@@ -275,55 +192,59 @@ Target Standard:
 Prerequisite Standards & Supporting Learning Components:
 ${prerequisiteText}`;
 
-      const response = await openai.chat.completions.create({
-        model: OPENAI_MODEL,
-        messages: [
-          { role: 'system', content: 'You are an expert middle school math tutor.' },
-          { role: 'user', content: prompt }
-        ],
-        temperature: OPENAI_TEMPERATURE
-      });
+    const response = await openai.chat.completions.create({
+      model: OPENAI_MODEL,
+      messages: [
+        { role: 'system', content: 'You are an expert middle school math tutor.' },
+        { role: 'user', content: prompt }
+      ],
+      temperature: OPENAI_TEMPERATURE
+    });
 
-      const practiceQuestions = response.choices[0].message.content.trim();
+    const practiceQuestions = response.choices[0].message.content.trim();
 
-      console.log(`✅ Generated practice questions:\n`);
-      console.log(practiceQuestions);
+    console.log(`✅ Generated practice questions:\n`);
+    console.log(practiceQuestions);
 
-      return {
-        aiGenerated: practiceQuestions,
-        targetStandard: fullStandardsContext.targetStandard.statementCode,
-        prerequisiteCount: fullStandardsContext.prereqStandards.length
-      };
-    } catch (err) {
-      console.error('❌ Error generating practice questions:', err.message);
-      throw err;
-    }
-  };
+    return {
+      aiGenerated: practiceQuestions,
+      targetStandard: fullStandardsContext.targetStandard.statementCode,
+      prerequisiteCount: fullStandardsContext.prereqStandards.length
+    };
+  } catch (err) {
+    console.error('❌ Error generating practice questions:', err.message);
+    throw err;
+  }
 }
 
+/* ================================
+   MAIN EXECUTION
+   ================================ */
 
 async function main() {
   console.log('\n=== GENERATE PREREQUISITE PRACTICE TUTORIAL ===\n');
 
-  console.log('🔄 Step 1: Loading data...');
-  const aq = await import('arquero');
-  const { relevantStandards, relevantRelationships, relevantLearningComponents } = loadData(aq);
+  console.log('🔄 Step 2: Get prerequisite standards for 6.NS.B.4...\n');
 
-  console.log('\n🔄 Step 2: Querying prerequisite data...');
-  const prerequisiteData = queryPrerequisiteData(aq, relevantStandards, relevantRelationships, relevantLearningComponents);
+  // Get target standard and prerequisites
+  const prerequisiteData = await getStandardAndPrerequisites();
 
   if (!prerequisiteData) {
     console.error('❌ Failed to find prerequisite data');
     return;
   }
 
-  const { targetStandard, prerequisiteLearningComponents } = prerequisiteData;
+  const { targetStandard, prerequisiteStandards } = prerequisiteData;
 
-  console.log('\n🔄 Step 3: Generating practice...');
+  // Get learning components for prerequisites
+  console.log();
+  const prerequisiteLearningComponents = await getLearningComponentsForPrerequisites(prerequisiteStandards);
+
+  console.log('\n🔄 Step 3: Generate practice problems...\n');
   const fullStandardsContext = packageContextData(targetStandard, prerequisiteLearningComponents);
-  const generatePractice = generatePracticeData(fullStandardsContext);
+
   if (GENERATE_PRACTICE) {
-    await generatePractice();
+    await generatePractice(fullStandardsContext);
   } else {
     console.log('🚫 Practice question generation disabled');
   }

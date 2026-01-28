@@ -1,21 +1,21 @@
 # Compare Standards
 
-Demonstrates how to compare educational standards across different frameworks (Common Core vs Texas)
+Demonstrates how to use crosswalk data to compare standards between the Common Core State Standards (CCSSM) and state frameworks using the Knowledge Graph REST API, covering:
+- **API Integration**: Using REST API to query crosswalk data
+- **Standards Comparison**: Finding state standards that align with CCSS standards
+- **Jaccard Scoring**: Understanding alignment strength using Jaccard scores
+- **Learning Components**: Analyzing shared and unique learning components
 
-Follow the step-by-step tutorial [here](https://docs.learningcommons.org/knowledge-graph/v1-1-0/getting-started/tutorials/comparing-standards-across-states)
+> **Note:** The API is in limited early release and is only available to some private beta users. Because the API is an early release, current users should expect occasional breaking changes.
 
 ## Prerequisites
 
-- Node.js (v14 or higher)
-- Knowledge Graph CSV dataset files:
-  - `StandardsFrameworkItem.csv`
-  - `LearningComponent.csv`
-  - `Relationships.csv`
+- Node.js 18 or higher (for native fetch API support)
+- A Learning Commons Platform account
+- An API key generated in the Learning Commons Platform
 
 ## Dependencies
 
-- **arquero**: Data manipulation and analysis library
-- **csv-parse**: CSV file parsing
 - **dotenv**: Environment variable management
 
 ## Quick Start
@@ -29,7 +29,9 @@ Follow the step-by-step tutorial [here](https://docs.learningcommons.org/knowled
 
 2. **Set Environment Variables** (create `.env` file):
    ```bash
-   KG_DATA_PATH=/path/to/your/knowledge-graph/csv/files
+   # Knowledge Graph API credentials - get these from the Learning Commons Platform
+   API_KEY=your_api_key_here
+   BASE_URL=https://api.learningcommons.org/knowledge-graph/v0
    ```
 
 3. **Run Tutorial**:
