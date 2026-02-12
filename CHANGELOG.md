@@ -1,5 +1,24 @@
 # Changelog
 
+## Knowledge Graph [1.4.0](https://github.com/learning-commons-org/knowledge-graph/compare/v1.3.0...v1.4.0) (2026-02-12)
+
+**February 12, 2026**
+
+This release adds new aligned states.
+
+## **Updates**
+
+### Learning component aligned states
+
+We’ve added alignments to learning components and crosswalks to Common Core for standards from:
+
+* Florida
+* Idaho
+* Mississippi
+* Ohio
+* South Dakota
+* Utah
+
 ## **Knowledge Graph [v1.3.0](https://github.com/learning-commons-org/knowledge-graph/compare/v1.2.0...v1.3.0) (2026-01-28)**
 
 **January 28, 2026**
