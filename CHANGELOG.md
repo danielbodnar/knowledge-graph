@@ -1,13 +1,19 @@
 # Changelog
 
-## [1.6.0](https://github.com/learning-commons-org/knowledge-graph/compare/v1.5.0...v1.6.0) (2026-03-12)
+## Knowledge Graph [1.6.0](https://github.com/learning-commons-org/knowledge-graph/compare/v1.5.0...v1.6.0) (2026-03-12)
 
+**March 12, 2026**
 
-### Features
+### Learning component aligned states
 
-* Update links and curl commands to version 1.6.0 ([#20](https://github.com/learning-commons-org/knowledge-graph/issues/20)) ([a05fedf](https://github.com/learning-commons-org/knowledge-graph/commit/a05fedf47e2c256fd2950d411ac5ea882062fedf))
+We’ve added alignments to learning components and crosswalks to Common Core for standards from:
 
-## Changelog
+- Kansas
+
+### Data quality improvements
+
+* We've updated some of the alignments between learning components and Massachusetts state standards in order to fix some inconsistent alignments.
+* We've fixed the direction of the hasDependency relationship between curriculum components in Illustrative Mathematics content.
 
 ## Knowledge Graph [v1.5.0](https://github.com/learning-commons-org/knowledge-graph/compare/v1.4.0...v1.5.0) (2026-02-26)
 
