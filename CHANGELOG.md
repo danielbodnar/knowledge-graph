@@ -8,7 +8,7 @@
 
 We’ve added alignments to learning components and crosswalks to Common Core for standards from:
 
-- Kansas
+* Kansas
 
 ### Data quality improvements
 
