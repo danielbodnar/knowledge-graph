@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.0](https://github.com/learning-commons-org/knowledge-graph/compare/v1.5.0...v1.6.0) (2026-03-12)
+
+
+### Features
+
+* Update links and curl commands to version 1.6.0 ([#20](https://github.com/learning-commons-org/knowledge-graph/issues/20)) ([a05fedf](https://github.com/learning-commons-org/knowledge-graph/commit/a05fedf47e2c256fd2950d411ac5ea882062fedf))
+
+## Changelog
+
 ## Knowledge Graph [v1.5.0](https://github.com/learning-commons-org/knowledge-graph/compare/v1.4.0...v1.5.0) (2026-02-26)
 
 **February 26, 2026**
