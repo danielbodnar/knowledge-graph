@@ -1,7 +1,7 @@
 <img style="width:100%" alt="knowledge_graph_banner" src="https://raw.githubusercontent.com/learning-commons-org/.github/refs/heads/main/assets/kg_hero.png" />
 
 <p align="center">
-  <a href="https://docs.learningcommons.org/knowledge-graph/v1-4-0/getting-started/download-the-data/" target="_blank">Getting set up</a>
+  <a href="https://docs.learningcommons.org/knowledge-graph/getting-started/quickstart" target="_blank">Getting set up</a>
 </p>
 
 
@@ -141,16 +141,16 @@ You can download the files through direct links or using curl commands.
 
 **Direct links**
 
-- [nodes.jsonl](https://cdn.learningcommons.org/knowledge-graph/v1.7.0/exports/nodes.jsonl?ref=github)
-- [relationships.jsonl](https://cdn.learningcommons.org/knowledge-graph/v1.7.0/exports/relationships.jsonl?ref=github)
+- [nodes.jsonl](https://cdn.learningcommons.org/knowledge-graph/v1.8.0/exports/nodes.jsonl?ref=github)
+- [relationships.jsonl](https://cdn.learningcommons.org/knowledge-graph/v1.8.0/exports/relationships.jsonl?ref=github)
 
 **Using curl commands**
 
 If you don't have curl installed, visit https://github.com/curl/curl for installation instructions.
 
 ```bash
-curl -L "https://cdn.learningcommons.org/knowledge-graph/v1.7.0/exports/nodes.jsonl?ref=gh_curl" -o nodes.jsonl
-curl -L "https://cdn.learningcommons.org/knowledge-graph/v1.7.0/exports/relationships.jsonl?ref=gh_curl" -o relationships.jsonl
+curl -L "https://cdn.learningcommons.org/knowledge-graph/v1.8.0/exports/nodes.jsonl?ref=gh_curl" -o nodes.jsonl
+curl -L "https://cdn.learningcommons.org/knowledge-graph/v1.8.0/exports/relationships.jsonl?ref=gh_curl" -o relationships.jsonl
 ```
 
 #### Querying with jq
